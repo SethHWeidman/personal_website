@@ -1,0 +1,112 @@
+/*Sudoku numbers are solved cells with only one value.*/
+.sudoku_number {
+    height: inherit;
+    width: inherit;
+    background-color: inherit;
+    text-align: center;
+    line-height: 50px;
+    vertical-align: middle;
+    font-size: 200%;
+}
+
+/*Sudoku-solving is a placeholder class given to the cells that have not been solved yet.*/
+.sudoku-solving {
+}
+
+/*This class styles the cells that have not been solved yet, centering the text
+within those cells precisely using the "top" and "left" attributes below.*/
+.sudoku-not-solved {
+    height: inherit;
+    width: inherit;
+    margin: auto;
+    max-width: 40px;
+    text-align: center;
+    font-size: 10pt;
+    letter-spacing: 5px;
+    word-wrap: break-word;
+    position: relative;
+    top: 4%;
+    left: 3%;
+}
+
+/*Transition for the cells that have changed.*/
+/*.highlight {
+  color: #000;
+  transition: background 0.5s linear;
+}*/
+
+/*The big grid.*/
+.grid {
+  width: 475px; /*157 * 3 - 1 */
+  height: 475px;
+
+  /*Center the whole thing horizontally*/
+  display: block;
+  margin: auto;
+  border: 2px solid blue;
+}
+
+/*Styling of the box containing the update message.*/
+.update_message {
+
+  /*Center horizontally*/
+  display: block;
+  margin: auto;
+  width: 500px;
+}
+
+/*A 3x3 block containing the cells for each value.*/
+.grid-block {
+
+  /*Maintain row width while wrapping next row around*/
+  display: inline-block;
+  float: left;
+  width: 156px;
+  height: 156px;
+  border: 1px solid white;
+}
+
+/*Alternate colors blue and gray*/
+.grid-block:nth-child(odd) {
+  background-color: powderblue;
+}
+
+.grid-block:nth-child(even) {
+  background-color: Gainsboro;
+}
+
+.cell {
+  /*Size cells*/
+  width: 50px;
+  height: 50px;
+  border: 1px solid white;
+
+  /*Gets cells to move to left of row.*/
+  float: left;
+  transition: all 1.0s ease;
+}
+
+.highlighted-cell {
+  background-color: LightCoral;
+  transition: background 0.5s linear;
+}
+
+
+.input-cell {
+  /*Align text within cells.*/
+  text-align: center;
+  vertical-align: middle;
+  line-height: 50px;
+}
+
+/*Align text within cells that have been solved.*/
+.solving-cell {
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid white;
+}
+
+/*Put spaces of 10 pixels between the buttons and the elements above them.*/
+.toggle-buttons {
+    margin-top: 10px;
+}

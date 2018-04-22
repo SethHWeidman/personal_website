@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'>
+    MathJax.Hub.Config({
+  tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}});</script>
+</head>
+<body>
+
+  <p>
+    Here we are. We have learned how to train a particular kind of neural net:
+    one that transforms our original set of inputs or "features" into several
+    "intermediate features", and then uses those intermediate features to
+    predict our output using logistic regression.
+  </p>
+  <p>
+    Computing the predictions and ensuring the net learned correctly in this
+    relatively simple case took about 20 separate steps. Clearly, this process
+    will not scale if we want to make nets that are more complex - and, for
+    tasks like recognizing handwritten digits, an extremely complex task for
+    a computer, we will indeed have to build these more complex nets.
+  </p>
+  <p>
+    To generalize the limited, hard-won understanding we've gained so far
+    into why this process of training neural nets works, we are going to
+    have to change our understanding or what neural nets are - and indeed,
+    we are going to have to leave the comfortable realm of mathematics to
+    learn some of the terminology often used to describe neural nets.
+    Let's dive in.
+  </p>
+  <p>--</p>
+  <p>
+    Up until now, we have described neural nets as functions which are
+    composed together as functions are in mathematics. On the "forward"
+    pass of a neural net, these functions take in input and produce output.
+    But what exactly do these functions do on the backwards pass? It isn't
+    clear; it totally depends on the function itself. Therefore, if we want
+    to move toward an understanding of neural nets which involves seeing
+    them as made up of decomposable building blocks, we will need to move
+    past understanding them as merely functions: we will need to understand
+    them differently.
+  </p>
+  <p>
+    Consider this: the computations in both the forwards and backwards
+    passes of the neural net consist of two different kinds of functions:
+  </p>
+  <ul>
+  <li>The multiplication of the N inputs by an N x M matrix, which then
+    transforms them into M outputs.
+  </li>
+  <li>
+    The application to these outputs of a function that transforms these
+    outputs - which may be any real number - into a more "manageable"
+    output. For example, the sigmoid function squashes the outputs down
+    to be between 0 and 1.
+  </li>
+  </ul>
+  <p>
+    This brings us to the conception of neural nets that inspired their
+    original design and is the way most researchers in the field think
+    about them. Going forward, we shall think of neural nets as consisting
+    of "layers". What are "layers", exactly, and what do they do?</p>
+  <ul>
+  <li>
+    Each layer consists of a certain number of "neurons". This number
+    refers to the number of numbers the layer outputs. Again, if a layer
+    receives M inputs, and multiplies these inputs by an M x N matrix, it
+    will then have N outputs.
+  </li>
+  <li>
+    One property real neurons (in the brain) have is that they receive
+    inputs and either fire or don't. This property is what inspired
+    researchers to design neural nets the way they did.
+  </li>
+  <li>
+    Putting these neurons through a sigmoid function is supposed to be
+    analogous to neurons in the brain either firing or not. The sigmoid
+    function - which can take other forms as well - is therefore called the
+    "activation function". This terminology is very common; what is less
+    common (but what you should still know) is that its outputs are
+    sometimes called the layer's "activations".
+  </li>
+  </ul>
+  <p>This is how we shall think of neural nets going forward.</p>
+  <p>
+    One note: the layers we have seen so far are only one type of layer.
+    In the terminology of neural nets - and in this case terminology that
+    makes sense intuitively, these layers are:</p>
+  <ul>
+  <li>
+    Linear, since the inputs are transformed into outputs based exclusively
+    on linear combinations with the weights.
+  </li>
+  <li>
+    Fully connected: each of the inputs does indeed "affect" the value
+    of the output based on the "weight" connecting the inputs to the outputs.
+  </li>
+  </ul>
+  <p>
+    Later on, we will see the advantages of having layers where this is not
+    the case, especially of having layers which are not fully connected.</p>
+  <p>
+    These are the concepts. We must now make this precise using code.
+    Neural nets are a complex elephant, and throughout this book, we will
+    have to understnad things at a conceptual, visual, and procedural level,
+    using words, diagrams, and code, respectively. Let's dive into the code.
+  </p>
+  <p>--</p>
+  <p>
+    First, we shall have to introduce the notion of a class. I'm not an
+    expert in explaining computer science concepts, so from an amateur's
+    perspective I'd have to say the best explanation of a class I've ever
+    heard is that it is a blueprint: it is a set of instructions on how an
+    object is built, and how it works.
+  </p>
+  <p>
+    Based on what we know so far, let's try to work out what classes we'll
+    need to ultimately build complex neural nets:
+  </p>
+  <ul>
+  <li>
+    We know we will need a "Neural Net" class. This class will have to be
+    able to "learn" its weights by passing numbers between its "layers".
+  </li>
+  </ul>
+
+  --
+
+  Let's begin with the end in mind: we'll start by talking about what we
+  want the neural net to look like.
+
+  A neural net will be a list of layers. We want to eventually be able to
+  write neural nets like this:
+
+  <pre class="brush: python">
+    neural_net = [Layer1, Layer2]
+  </pre>
+
+  We'll get into what those "layers" do later. But for now, we know that
+  neural nets will need to work with "layers". Therefore, we know that we
+  can start writing our net as:
+
+  <pre class="brush: python">
+    class NeuralNetwork:
+      def __init__(self, layers):
+      self.layers = layers
+  </pre>
+
+  What will these layers need to do? These layers will need to pass values
+  backwards and forwards. The first layer will take in input and create
+  some "intermediate" quantities, the last layer will take some quantity
+  from the previous layer and output a prediction, and the layers in the
+  middle will simple pass values through the net.
+
+  Therefore, a forward pass through the net will look like this:
+
+  <pre class="brush: python">
+    def forwardpass(self, X):
+        """ Calculate an output Y for the given input X. """
+        X_next = X
+        for layer in self.layers:
+            X_next = layer.fprop(X_next)
+        prediction = X_next
+        return prediction
+  </pre>
+
+  We'll get to what `fprop` for each layer will look like later. Still, this
+  is an achievement, as it's a general way for a neural net composed of any
+  number of layers to make predictions.
+
+  Now, once we have a prediction, we should have a way of calculating the
+  loss. Let's write that:
+
+  <pre class="brush: python">
+    def loss(self, prediction, Y):
+        """ Calculate error on the given data. """
+        mse = 0.5 * (Y - prediction) ** 2
+        loss = -1.0 * (Y - prediction)
+        return loss
+  </pre>
+
+  Later on, we may want to be able to make this more general, and able to
+  accomodate different loss functions. Still, we should pat ourselves on
+  the back just for this.
+
+  Finally, we need to, in a manner similar to the "forwardpass" function,
+  pass this loss back through the network to update the weights.
+
+  <pre class="brush: python">
+    def backpropogate(self, loss):
+      """ Calculate an output Y for the given input X. """
+      loss_next = loss
+      for layer in reversed(self.layers):
+          loss_next = layer.bprop(loss_next)
+      return loss
+  </pre>
+
+  And that's it - that's the basic structure of our neural net. So far we
+  have changed the way we think about neural nets - instead of thinking
+  of them purely mathematically, we think of them as being composed of
+  layers, which can feed values backwards and forwards.
+
+  Next week, we will take the complex code we wrote in prior weeks to make
+  the neural net learn and break it down into a "set of layers", each of
+  which has its own "activation function", can send values forwards and
+  backwards based both on this activation function and its derivative, and
+  updates its weights appropriately on the backwards pass. Stay tuned!
+
+</body>
+
+</html>

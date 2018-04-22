@@ -1,0 +1,52 @@
+
+<h1>Contact Form:</h1>
+
+<form name="sentMessage" id="contact_form" action="#" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="control-group form-group {% if form.name.errors %}has-error {% endif %}">
+        <div class="controls">
+            <label class="control-label">Name:</label>
+            {% for message in form.name.errors %}
+                <p class="help-block">
+                    <div>{{ message }}</div>
+                </p>
+            {% endfor %}
+            <input type="text" class="form-control" id="name" name="name" required data-validation-required-message="Please enter your name.">
+        </div>
+    </div>
+    <div class="control-group form-group {% if form.name.errors %}has-error {% endif %}">
+        <div class="controls">
+            <label class="control-label">Phone Number:</label>
+            {% for message in form.phone.errors %}
+                <p class="help-block">
+                    <div>{{ message }}</div>
+                </p>
+            {% endfor %}
+            <input type="tel" class="form-control" id="phone" name="phone" required data-validation-required-message="Please enter your phone number.">
+        </div>
+    </div>
+    <div class="control-group form-group {% if form.name.errors %}has-error {% endif %}">
+        <div class="controls">
+            <label class="control-label">Email Address:</label>
+            <input type="email" class="form-control" id="email" name="email" required data-validation-required-message="Please enter your email address.">
+            {% for message in form.email.errors %}
+                <p class="help-block">
+                    <div>{{ message }}</div>
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="control-group form-group {% if form.name.errors %}has-error {% endif %}">
+        <div class="controls">
+            <label class="control-label">Message:</label>
+            <textarea rows="10" cols="100" class="form-control" id="message" name="message" required data-validation-required-message="Please enter your message" maxlength="999" style="resize:none"></textarea>
+            {% for message in form.message.errors %}
+                <p class="help-block">
+                    <div>{{ message }}</div>
+                </p>
+            {% endfor %}
+    </div>
+    <div id="success"></div>
+    <!-- For success/fail messages -->
+    <button type="submit" class="btn btn-primary">Send Message</button>
+</form>

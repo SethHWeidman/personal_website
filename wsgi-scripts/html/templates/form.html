@@ -1,0 +1,37 @@
+{% import 'macros.html' as macros %}
+<h1>Contact Form:</h1>
+
+<form name="sentMessage" id="contact_form" action="#" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ macros.render_field(form.name, label_visible=false, placeholder='Name', type='text') }}
+    {{ macros.render_field(form.phone, label_visible=false, placeholder='Phone Number', type='tel') }}
+    {{ macros.render_field(form.email, label_visible=false, placeholder='Email', type='email') }}
+    {{ macros.render_field(form.message, label_visible=false, placeholder='Message', type='textarea') }}
+
+    <!-- <div class="control-group form-group">
+        <div class="controls">
+            <label>Name:</label>
+            <input type="text" class="form-control" id="name" name="name" required data-validation-required-message="Please enter your name.">
+        </div>
+    </div>
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Phone Number:</label>
+            <input type="tel" class="form-control" id="phone" name="phone" required data-validation-required-message="Please enter your phone number.">
+        </div>
+    </div>
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Email Address:</label>
+            <input type="email" class="form-control" id="email" name="email" required data-validation-required-message="Please enter your email address.">
+        </div>
+    </div>
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Message:</label>
+            <textarea rows="10" cols="100" class="form-control" id="message" name="message" required data-validation-required-message="Please enter your message" maxlength="999" style="resize:none"></textarea>
+    </div>
+    <div id="success"></div>
+    <!-- For success/fail messages -->
+    <button type="submit" class="btn btn-primary">Send Message</button>
+</form>

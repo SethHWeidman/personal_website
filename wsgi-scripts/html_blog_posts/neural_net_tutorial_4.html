@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'>
+    MathJax.Hub.Config({
+  tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}});</script>
+</head>
+<body>
+
+
+      <p>So: we have constructed a neural net, in our second example that consists of
+        a significantly more complicated set of functions than our first example did.
+        However, all we've really done up until this point is ensure we were taking derivatives
+        correctly and that the dimensions of our matrix multiplication were set
+        correctly. Let's examine this "thing" (which I claim is a neural net, but up until
+        this point we only know to be a complex set of nested functions) in more detail.</p>
+
+        --
+
+      <p>To recap: this is our "neural net" up until this point.</p>
+
+                <pre class="brush: python">
+                  X = np.array([ [0,0,1] ])
+                  y = np.array([ [1] ]).T
+                  V = np.random.randn(3, 4)
+                  W = np.random.randn(4, 1)
+                  for i in range(10000):
+                      A = np.dot(X,V)
+                      B = nonlin(A)
+                      C = np.dot(B,W)
+                      P = nonlin(C)
+                      L = 0.5 * (y - P) ** 2
+                      dLdP = -1.0 * (y-P)
+                      dPdC = sigmoid(C) * (1-sigmoid(C))
+                      dLdC = dLdP * dPdC
+                      dCdW = B.T
+                      dLdW = np.dot(dCdW, dLdC)
+                      dCdB = W.T
+                      dLdB = dLdC * dCdB
+                      dBdA = sigmoid(A) * (1-sigmoid(A))
+                      dLdA = dLdB * dBdA
+                      dAdV = X.T
+                      dLdV = np.dot(dAdV, dLdA)
+                      W -= dLdW
+                      V -= dLdV
+                  </pre>
+
+      <p> However, recalling that we are trying to learn the relationship between our inputs X
+        and our outputs y, note that here this relationship is quite simple. There are three features,
+        the first of which is 0, the second of which is also 0, and the third of which is 1.</p>
+
+
+        <p> Let's put this neural net to a harder test. Let's see if it can learn a more complex relationship
+          between input and output; and in particular, if we can feed multiple variables into this neural network
+        to learn this complex relationship.</p>
+
+        <p> I will randomly choose five configurations for the three features making up $ X $, and randomly choose
+          between the values of 0 and 1 for $ y $.
+        </p>
+
+        <pre class="brush: python">
+          X =  [[1, 0, 0], [1, 0, 1], [1, 1, 1], [0, 0, 0], [0, 1, 1]]
+          y =  [[1], [0], [0], [1], [0]]
+        </pre>
+
+        <p> Now, let's go through and examine the dimensions of each component of the matrix here:</p>
+          <pre class="brush: python">
+            X = np.array([ [0,0,1] ])
+            # dimension of X: 1 x 3
+
+            y = np.array([ [1] ]).T
+            # dimension of y: 1 x 1
+
+            V = np.random.randn(3, 4)
+            # dimension of V: 3 x 4
+
+            W = np.random.randn(4, 1)
+            # dimension of W: 4 x 1
+            for i in range(10000):
+                A = np.dot(X,V)
+                # dimension of A: 1 x 4 (product of a 1 x 3 and a 3 x 4)
+
+                B = nonlin(A)
+                # dimension of B: 1 x 4
+
+                C = np.dot(B,W)
+                # dimension of C: 1 x 1 (product of a 1 x 4 and a 4 x 1)
+
+                P = nonlin(C)
+                # dimension of P: 1 x 1
+
+                L = 0.5 * (y - P) ** 2
+                dLdP = -1.0 * (y-P)
+                dPdC = sigmoid(C) * (1-sigmoid(C))
+                dLdC = dLdP * dPdC
+                # dimensions of L, dLdP, dPdC, and dLdC: 1 x 1
+
+                dCdW = B.T
+                # dimensions of dCdW: 4 x 1 (transpose of B a 1 x 4)
+
+                dLdW = np.dot(dCdW, dLdC)
+                # dimensions of dLdW: 4 x 1 (product of a 4 x 1 and a 1 x 1)
+
+                dCdB = W.T
+                # dimensions of dCdB: 1 x 4 (transpose of W, a 1 x 4)
+
+                dLdB = dLdC * dCdB
+                # dimensions of dLdB: 1 x 4 (product of a 1 x 1 and a 1 x 4)
+
+                dBdA = sigmoid(A) * (1-sigmoid(A))
+                # dimensions of dBdA: 1 x 4 (same dimensions as A)
+
+                dLdA = dLdB * dBdA
+                # dimensions of dLdA: elementwise multiplication of dLdB and dBdA, both 1 x 4
+
+                dAdV = X.T
+                # dimensions of dAdV: 3 x 1 (transpose of X, a 1 x 3)
+
+                dLdV = np.dot(dAdV, dLdA)
+                # dimensions of dLdV: 3 x 4 (product of a 3 x 1 and a 1 x 4)
+
+                W -= dLdW
+                # dimensions line up: both 4 x 1
+
+                V -= dLdV
+                # dimensions line up: both 3 x 4
+            </pre>
+
+            <p>Now, here's where things get kind of magical. Because of the way we have set up the multiplication,
+              we can add additional observations to our data, and to $ X $ and $ y $ without having to modify this code at all! To keep the
+              numbers as small and the example as simple as possible, let's say $ X $ has 5 observations, so that
+            </p>
+
+            $$ X = \begin{bmatrix}1 & 0 & 0 \\
+                                  1 & 0 & 0 \\
+                                  1 & 1 & 1 \\
+                                  0 & 0 & 0 \\
+                                  0 & 1 & 1
+                                   \end{bmatrix} $$
+
+            <p>and</p>
+
+             $$ y = \begin{bmatrix}1 \\
+                                   0 \\
+                                   0 \\
+                                   1 \\
+                                   0\end{bmatrix} $$
+
+        <p>In code we would write this as:</p>
+          <pre class="brush: python">
+            X =  [[1, 0, 0], [1, 0, 1], [1, 1, 1], [0, 0, 0], [0, 1, 1]]
+            y =  [[1], [0], [0], [1], [0]]
+          </pre>
+
+          <p>Let's see if using these definitions of $ X $ and $ y $ would still work
+            with the matrix multiplication the way it is set up:</p>
+            <pre class="brush: python">
+              X = np.array([ [0,0,1] ])
+              # dimension of X: 5 x 3
+
+              y = np.array([ [1] ]).T
+              # dimension of y: 5 x 1
+
+              V = np.random.randn(3, 4)
+              # dimension of V: 3 x 4
+
+              W = np.random.randn(4, 1)
+              # dimension of W: 4 x 1
+              for i in range(10000):
+                  A = np.dot(X,V)
+                  # dimension of A: 5 x 4 (product of a 5 x 3 and a 3 x 4)
+
+                  B = nonlin(A)
+                  # dimension of B: 5 x 4
+
+                  C = np.dot(B,W)
+                  # dimension of C: 5 x 1 (product of a 5 x 4 and a 4 x 1)
+
+                  P = nonlin(C)
+                  # dimension of P: 5 x 1
+
+                  L = 0.5 * (y - P) ** 2
+                  dLdP = -1.0 * (y-P)
+                  dPdC = sigmoid(C) * (1-sigmoid(C))
+                  dLdC = dLdP * dPdC
+                  # dimensions of L, dLdP, dPdC, and dLdC: 5 x 1
+
+                  dCdW = B.T
+                  # dimensions of dCdW: 4 x 5 (transpose of B, a 5 x 4)
+
+                  dLdW = np.dot(dCdW, dLdC)
+                  # dimensions of dLdW: 4 x 1 (product of a 4 x 5 and a 5 x 1; clever, right?)
+
+                  dCdB = W.T
+                  # dimensions of dCdB: 1 x 4 (transpose of W, a 1 x 4)
+
+                  dLdB = dLdC * dCdB
+                  # dimensions of dLdB: 5 x 4 (product of a 5 x 1 and a 1 x 4)
+
+                  dBdA = sigmoid(A) * (1-sigmoid(A))
+                  # dimensions of dBdA: 5 x 4 (same dimensions as A)
+
+                  dLdA = dLdB * dBdA
+                  # dimensions of dLdA: elementwise multiplication of dLdB and dBdA, both 5 x 4
+
+                  dAdV = X.T
+                  # dimensions of dAdV: 3 x 5 (transpose of X, a 5 x 3)
+
+                  dLdV = np.dot(dAdV, dLdA)
+                  # dimensions of dLdV: 3 x 4 (product of a 3 x 5 and a 5 x 4; again, clever that this works, right?)
+
+                  W -= dLdW
+                  # dimensions line up: both 4 x 1
+
+                  V -= dLdV
+                  # dimensions line up: both 3 x 4
+              </pre>
+
+        <p>It works! Indeed, replace 5 by $ n $ above and you can see that this code will work for any
+          number of observations.<p>
+
+        <p>This illustrates an important principle about training neural nets:
+          training multiple observations at a time - which again, means changing the weights $ V $
+          and $ W $ over successive "passes" through the net - is exactly the same as training the net
+          on each individual observation and then summing up all those changes across observations.
+        </p>
+
+        <p>So, why do we ever train multiple observations at a time - why not just train one at a time?
+          The answer is speed: it is sometimes faster to train using multiple observations at a time, rather
+          than just one, and a key reason for that is linear algebra. Note that in some key steps above we're
+          doing matrix multiplications; it turns out there are some libraries in Python that can do matrix
+          multiplication extremely quickly, which makes it faster to train nets.
+        </p>
+
+        <p>
+          However, it is worth noting something at this juncture: linear algebra, like many ideas assocaited
+          with neural nets, has nothing to do with the nets themselves. The nets are nested functions, the
+          nesting of which allows them to approximate arbitrarily complex functions. It so happens that an efficient
+          way to train these things is by using linear algebra, but there is nothing _essential_ to the functioning
+          of neural nets that requires a knowledge of any of the complexities of linear algebra. This, like many
+          things you'll read about neural nets, is an unnecessary complexity that makes the field of deep
+          learning seem less accessible to outsiders than it should be.
+        </p>
+
+        --
+
+        <p>
+          So, we have seen how neural nets learn from individual examples, both at a conceptual / mathematical
+          level - feeding the observations through nested functions, calculating the loss, and then "backpropogating"
+          this loss to figure out how we want our weights to change by computing partial derivatives.
+          We have seen empirically that this process "works", and we understand why it works: because of the
+          chain rule from calculus.
+        </p>
+
+        <p>To progress further, it will be necessary to exit the mathematical / conceptual realm and enter
+          another realm in which we must feel comfortable to both build and understand more complex
+          neural nets: computer science, and more specifically, the craft of software engineering. </p>
+
+        <pre class="brush: python">
+          def learn(X, y):
+              V = np.random.randn(3, 4)
+              W = np.random.randn(4, 1)
+              for j in range(50000):
+                  A = np.dot(X,V)
+                  B = sigmoid(A)
+                  C = np.dot(B,W)
+                  P = sigmoid(C)
+                  L = 0.5 * (y - P) ** 2
+                  dLdP = -1.0 * (y-P)
+                  dPdC = sigmoid(C) * (1-sigmoid(C))
+                  dLdC = dLdP * dPdC
+                  dCdW = B.T
+                  dLdW = np.dot(dCdW, dLdC)
+                  dCdB = W.T
+                  dLdB = dLdC * dCdB
+                  dBdA = sigmoid(A) * (1-sigmoid(A))
+                  dLdA = dLdB * dBdA
+                  dAdV = X.T
+                  dLdV = np.dot(dAdV, dLdA)
+                  W -= dLdW
+                  V -= dLdV
+              return V, W
+          </pre>
+
+
+
+        <p>
+          How we structure our code is important. Using tools such as functions and classes appropriately
+          is just as important for truly understanding neural nets as is understanding the underlying mathematics.
+          However, just as the math can be intimidating, and it is therefore important to understand that you only
+          need to understand some basic calculus to understand the full complexity of neural nets, we will start
+          by simply wrapping the code we have written above in some simple functions only adding complexity later
+          when it is absolutely necessary.
+        </p>
+
+        <p> As we attempt to "group" the many steps involved in training a neural net that we have defined above
+          into smaller groups, creating functions, we will be forced to more precisely define our concepts. This
+          is one of the truly beautiful things about <em>forcing oneself to express what are abstract and essentially
+            mathematical concepts in code</em>: we are forced to make precise the vague, operational the abstract.
+        </p>
+
+        <p>
+          For example: what does it mean for a neural network to learn? We hear this term a lot; let's make it precise
+          using code.
+
+          First, in words: to make a neural net learn means to return the set of weights produced after training.
+
+          In code, then, the following function will "learn" the weights $ V $ and $ W $.
+        </p>
+
+          <pre class="brush: python">
+            def learn(X, y):
+                V = np.random.randn(3, 4)
+                W = np.random.randn(4, 1)
+                for j in range(50000):
+                    A = np.dot(X,V)
+                    B = sigmoid(A)
+                    C = np.dot(B,W)
+                    P = sigmoid(C)
+                    L = 0.5 * (y - P) ** 2
+                    dLdP = -1.0 * (y-P)
+                    dPdC = sigmoid(C) * (1-sigmoid(C))
+                    dLdC = dLdP * dPdC
+                    dCdW = B.T
+                    dLdW = np.dot(dCdW, dLdC)
+                    dCdB = W.T
+                    dLdB = dLdC * dCdB
+                    dBdA = sigmoid(A) * (1-sigmoid(A))
+                    dLdA = dLdB * dBdA
+                    dAdV = X.T
+                    dLdV = np.dot(dAdV, dLdA)
+                    W -= dLdW
+                    V -= dLdV
+                return V, W
+            </pre>
+
+            <p>
+              So: "learning" means "learn the weights from this specific training data that I am giving you".
+              Once a network has "learned", how can we use that learning? The answer is that we can use the weights
+              from that "trained" network to make predictions on new input. Let's encapsulate that precisely
+              in a predict function.
+            </p>
+
+            <pre class="brush: python">
+              def predict(X_new, V, W):
+                  A = np.dot(X_new,V)
+                  B = sigmoid(A)
+                  C = np.dot(B,W)
+                  P = sigmoid(C)
+                  return P
+            </pre>
+
+            <p>
+              Now, let's use these functions. Let's feed in new input, $ X $ and $ y $, and see if the network
+              can learn these the relationship between input and output. Given the inputs we have defined - three
+              features with values $ 0 $ or $ 1 $ - there are $ 2^3 = 8 $ possible combinations. I'll randomly shuffle
+              these, and randomly assign four of these observations to have the output $0$ and four the output $1$.
+              That is what the code below does:
+            </p>
+
+            <pre class="brush: python">
+              import numpy as np
+              import random
+              randX = random.sample(range(1,9), 8)
+              mapping_dict = {1:[0,0,0],
+                             2:[0,0,1],
+                             3:[0,1,0],
+                             4:[0,1,1],
+                             5:[1,0,0],
+                             6:[1,0,1],
+                             7:[1,1,0],
+                             8:[1,1,1]}
+              X = []
+              for r in randX:
+                  X.append(mapping_dict[r])
+
+
+              y = []
+              randy = random.sample(range(1,9), 8)
+              for el in randy:
+                  if el % 2 == 0:
+                      y.append([0])
+                  else:
+                      y.append([1])
+
+
+              X = np.array(X)
+              y = np.array(y)
+
+              print "X: %s" % str(X)
+              print "y: %s" % str(y)
+            </pre>
+
+            <pre class="brush: python">
+              X: [[0 0 0]
+                 [1 0 0]
+                 [1 0 1]
+                 [0 1 0]
+                 [1 1 0]
+                 [0 1 1]
+                 [1 1 1]
+                 [0 0 1]]
+                y: [[1]
+                 [1]
+                 [0]
+                 [1]
+                 [0]
+                 [1]
+                 [0]
+                 [0]]
+            </pre>
+
+            <p>
+              Writing this in the rows and columns we are used to seeing data written in:
+            </p>
+
+              <table class="tg">
+                <center>
+                <style type="text/css">
+                .tg  {border-collapse:collapse;border-spacing:0;border-color:#ccc;}
+                .tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+                .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+                .tg .tg-5rcs{font-weight:bold;font-size:20px;}
+                .tg .tg-4kyz{font-size:20px;text-align:center}
+                </style>
+              <tr>
+                <th class="tg-5rcs" colspan="3">Inputs</th>
+                <th class="tg-5rcs">Output</th>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">1</td>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">0</td>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">1</td>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">0</td>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">0</td>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">1</td>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">1</td>
+              </tr>
+              <tr>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">0</td>
+                <td class="tg-4kyz">1</td>
+                <td class="tg-4kyz">0</td>
+              </tr>
+            </table>
+            </center>
+
+            <p>
+              Now, let's train a net on this data, and then use it to predict new data.
+            </p>
+
+            <pre class="brush: python">
+              V, W = learn(X, y)
+            </pre>
+
+            <p>
+              That's it! Now $V$ and $W$ are just matrices of numbers which togehther encode the relationship
+              between the inputs as we've defined them and the outputs.
+            </p>
+
+            <p>
+              Now, if we input, say $\begin{bmatrix}1 & 1 & 1\end{bmatrix}$ and $\begin{bmatrix}0 & 1 & 0\end{bmatrix}$
+              as inputs, we should return something close to $ [1] $ and $ [0] $, respectively, as predictions. Indeed,
+              that is what we see:
+            </p>
+
+            <pre class="brush: python">
+              np.set_printoptions(suppress=True) # Suppress scientific notation
+              X_new = [[1, 1, 1], [0, 1, 0]]
+              P = predict(X_new, V, W)
+              P
+            </pre>
+
+          <p>
+            This code outputs:
+          </p>
+
+            <pre class="brush: python">
+              array([[ 0.99779399],
+                     [ 0.00089163]])
+            </pre>
+
+            <p>
+              as expected.
+            </p>
+
+        --
+
+        <p>So, it appears that this neural net can indeed learn complex patterns. But did we need to
+          do all that work to build a net that could learn these patterns? Could simpler techniques have done
+          the job? What makes neural nets so special, anyway?</p>
+
+          <p>
+            In addition, even in this simple example, we risk not being able to fully interpret what is going on in
+            the net. Looking at the weight matrices $V$ and $W$, for example, we see that it is unclear how to
+            interpret them. Running the code:
+          </p>
+
+          <pre class="brush: python">
+            V, W = learn(X, y)
+            print "V: %s" % str(V)
+            print "W: %s" % str(W)
+          </pre>
+
+          <p>
+            shows:
+          </p>
+
+          <pre class="brush: python">
+            V: [[-3.13607135 -4.10707349 -7.66588684  3.66266437]
+             [-6.40709978  4.7574922   0.9685441  -3.71571076]
+             [ 6.75626594 -6.58360648  3.88296949  5.53671139]]
+            W: [[-11.9161323 ]
+             [-15.21933595]
+             [ 10.95328222]
+             [  6.25258304]]
+          </pre>
+
+          <p>
+            It isn't obvious what, if anything, these numbers represent, or if they just
+            happen to explain the relationship between the input and the output. In other words,
+            is there any way we could have predicted that these numbers would have arisen as
+            the "answer" to the function approximation problem in advance?
+          </p>
+
+          <p>
+            To understand the answer to these questions, we'll have to start by going backwards, toward
+            the realm of logic, examining some even simpler, more deliberately constructed examples to understand
+            precisely what the power of adding a hidden layer does for our ability to model complex phenomena.
+          </p>
+
+          <p>That is one direction our inquiry will go: backwards, toward the simple, understanding the limitations
+          of techniques simpler than neural nets and seeing why neural nets are necessary as a means to go
+          beyond these simple techniques. This will take us back toward the realm of basic statistics and
+          even logic, a key component to understanding neural nets fully.</p>
+
+          <p>The other direction is toward the complex, by way of abstraction. Counting above, we have built
+          what we will come to understand as a relatively simple neural net (as we will build much more complex
+          ones), and yet this neural net, as it is written, has about 15 computational steps. Can we understand these
+          combine and abstract away from these steps in an elegant way, so that we can understand this
+          monster of nested functions to be a sensible entity. In traveling in this direction, we will
+        use the language of computer science, such as classes, to describe the architecture and the rules of
+      operation of neural nets; but most importantly, it is here that we will begin to conceive of neural nets
+      as analogous to the operation of the brain, and we shall begin to speak of "neurons" "activating", and think
+    of these neurons as being grouped into "layers". Because we will have started by knowing what is going on under
+  the hood, we will feel empowered to move boldly forward and use these neural nets to solve complex problems.</p>
+
+</body>
+
+</html>

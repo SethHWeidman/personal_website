@@ -1,0 +1,194 @@
+/*!
+ * Start Bootstrap - Modern Business (http://startbootstrap.com/)
+ * Copyright 2013-2016 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
+ */
+
+/* Global Styles */
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    padding-top: 50px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+}
+
+.img-portfolio {
+    margin-bottom: 30px;
+}
+
+.img-hover:hover {
+    opacity: 0.8;
+}
+
+nav .list-social-icons {
+    display: inline-block;
+    position: relative;
+    top: 50%;
+    transform: translateY(40%);
+}
+
+.vcenter {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.margin-top {
+    margin-top: 25px;
+}
+
+a {
+    color: #889691;
+}
+
+a:focus, a:hover {
+    color:#b3dde0;
+}
+
+h1, h2, h3, h4, h5 {
+    color:#183e4e;
+}
+
+.panel-default>.panel-heading {
+    background-color: #183e4e;
+
+}
+.panel-default>.panel-heading h4 {
+    color: #889691;
+}
+.well {
+    background-color: #b3dde0;
+}
+
+.btn-default:hover {
+    background-color: #f5fbef;
+}
+
+.navbar-inverse {
+    background-color: #183e4e;
+}
+
+.navbar-inverse .navbar-nav>li>a:focus, .navbar-inverse .navbar-nav>li>a:hover {
+    color: #b3dde0;
+}
+
+.navbar-inverse .navbar-brand {
+
+    color: #889691;
+}
+
+.navbar-inverse .navbar-nav>li>a {
+    color: #889691;
+}
+.navbar-inverse .navbar-brand:focus, .navbar-inverse .navbar-brand:hover {
+    color: #b3dde0;
+
+}
+
+.navbar-inverse .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:focus, .navbar-inverse .navbar-nav>.open>a:hover {
+    background-color: #183e4e;
+}
+/* Related Projects */
+
+.related-project {
+    position: relative;
+    overflow: hidden;
+}
+.related-project .text-hover {
+    overflow: hidden;
+}
+.related-project .text-hover p {
+    color: #000000;
+    padding: 15px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateY(300%);
+    transition: transform 0.1s ease-in-out;
+    z-index: 1000;
+}
+
+
+.related-project:hover .text-hover p {
+    /*display:block;*/
+    transform: translateX(0);
+    -webkit-transition: width 2s, height 2s, background-color 2s, -webkit-transform 1s;
+    transition: width 2s, height 2s, background-color 2s, transform 1s;
+
+}
+
+/* Home Page Carousel */
+
+header.carousel {
+    height: 50%;
+}
+
+header.carousel .item,
+header.carousel .item.active,
+header.carousel .carousel-inner {
+    height: 100%;
+}
+
+header.carousel .fill {
+    width: 100%;
+    height: 100%;
+    background-position: center;
+    background-size: cover;
+}
+
+/* 404 Page Styles */
+
+.error-404 {
+    font-size: 100px;
+}
+
+/* Pricing Page Styles */
+
+.price {
+    display: block;
+    font-size: 50px;
+    line-height: 50px;
+}
+
+.price sup {
+    top: -20px;
+    left: 2px;
+    font-size: 20px;
+}
+
+.period {
+    display: block;
+    font-style: italic;
+}
+
+/* Footer Styles */
+
+footer {
+    margin: 50px 0;
+}
+
+/* Responsive Styles */
+
+@media(max-width:991px) {
+    .customer-img,
+    .img-related {
+        margin-bottom: 30px;
+    }
+
+    .copywrite, .plug {
+        text-align: center;
+    }
+}
+
+@media(max-width:767px) {
+    .img-portfolio {
+        margin-bottom: 15px;
+    }
+
+    header.carousel .carousel {
+        height: 70%;
+    }
+}

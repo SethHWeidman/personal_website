@@ -1,0 +1,13 @@
+{% import 'macros.html' as macros %}
+<h1>Contact Form:</h1>
+
+<form name="sentMessage" id="contact_form" action="#" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ macros.render_field(form.name, label_visible=false, placeholder='Name', type='text') }}
+    {{ macros.render_field(form.phone, label_visible=false, placeholder='Phone Number', type='tel') }}
+    {{ macros.render_field(form.email, label_visible=false, placeholder='Email', type='email') }}
+    {{ macros.render_field(form.message, label_visible=false, placeholder='Message', type='textarea') }}
+
+    <!-- For success/fail messages -->
+    <button type="submit" class="btn btn-primary">Send Message</button>
+</form>

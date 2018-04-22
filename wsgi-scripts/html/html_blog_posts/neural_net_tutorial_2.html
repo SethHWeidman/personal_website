@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'>
+    MathJax.Hub.Config({
+  tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}});</script>
+</head>
+<body>
+   <p>So: we've constructed a basic neural net that has the key feature of a neural net:
+      it is a set of <em>nested</em> functions that can thus describe a more complicated
+      relationship between input and output than a single function can.</p>
+
+      <p>But how does this relate to the other concepts of neural nets we've heard so much
+        about, such as "layers" or "deep" nets? Clearly the net we have constructed thus
+        far is not "deep", for example.</p>
+
+        <p>Before generalizing to these more complicated concepts, it will be necessary to
+          walk through one more example, this one more tedious than the last. This is a
+          necessary part of the process of learning: you cannot understand the motivation
+          behind higher-level theory with seeing that the simpler theory from which it
+          springs will not generalize!</p>
+
+          <p>So: what would a neural net that is one "level" more complicated than this
+            neural net look like?</p>
+
+            <p>Let's consider a more complicated neural net, that is, one that is capable of
+              learning a more complex relationship between input and output than a the net we
+              initially described. Like the three blind mice, each of whom feels a different
+              part of the elephant and discovers something essential about it, we can view
+              this neural net in several different ways, which are all ultimately equivalent
+              and all illustrate a different, essential component of its operation.</p>
+
+        <ul>
+        <li>This neural net is a set of nested functions, each of which applies some transformation of the input to the output.&nbsp;The number of nested functions is larger than in the previous example.</li>
+        <li>Instead of predicting the output from the input somewhat directly, as in the previous example, we will use the first part of the network to "learn"&nbsp;some "hidden" features which themselves will predict the output. (we will ultimately consider this as a "hidden layer" of "neurons")</li>
+        </ul>
+
+        <p>Let's get started.</p>
+        <p>--</p>
+        <p>We will begin with three features as input, and predict one output, as in the prior example,
+          to keep this simple.</p>
+
+        <p>Mathematically, we can write this as:</p>
+        $$ X  = \begin{bmatrix}x_1 & x_2 & x_3\end{bmatrix} $$
+        $$ Y = \begin{bmatrix}y_1\end{bmatrix} $$
+
+        <p>And in code, we can write this as:</p>
+
+        <pre class="brush: python">
+          X = np.array([[0,0,1])
+          Y = np.array([[1])
+        </pre>
+
+        <p>Now, unlike last time, we will define two sets of parameters that we will learn. One of these
+          sets will convert our input of three features into the "hidden" features, and another set will
+          transform these hidden features into our output.</p>
+
+          <p>Arbitrarily, to keep the numbers simple and unconfusing, we'll choose to have four hidden features.
+            That means that our first set of weights must transform our three inputs into four hidden
+            features, and our second set of weights must, just like the weights in the prior problem,
+            transform our hidden features into a final predicition.</p>
+
+        <p>First, to transform our three inputs into our four hidden features, our first set of weights,
+          which we'll call $v$, will be a 3 x 4 matrix.</p>
+
+          $$ W1 = \begin{bmatrix}v_{11} & v_{12} & v_{13} & v_{14} \\
+                                 v_{21} & v_{22} & v_{23} & v_{24} \\
+                                 v_{31} & v_{32} & v_{33} & v_{34}
+                                 \end{bmatrix} $$
+
+          <p>Doing, the briefest of linear algebra reviews, let's show the calculations behind the
+            non-obvious fact that trips up even mathematicians, that multiplying the 1 x 3 matrix $ X $
+            by $ V $ gives a 1 x 4 output:</p>
+
+            $$ A = \begin{bmatrix}a_{1} & a_{2} & a_{3} & a_{4}
+                                   \end{bmatrix} $$.
+
+            <p>(Following the convention established in the prior post,
+            for now at least, we'll call the first calculated output of the net $ A $, the second $ B $,
+            etc., until we get to the final output prediction $ P $). Specifically,
+          when we write (as we will shortly):</p>
+
+            $$ X * V = A $$
+
+            <p> This is really an elegant and concise way of encoding:</p>
+
+            $$ x_1 * v_{11} + x_2 * v_{21} + x_3 * v_{31} = a_1 $$
+            $$ x_1 * v_{12} + x_2 * v_{22} + x_3 * v_{32} = a_2 $$
+            $$ x_1 * v_{13} + x_2 * v_{23} + x_3 * v_{33} = a_3 $$
+            $$ x_1 * v_{14} + x_2 * v_{24} + x_3 * v_{34} = a_4 $$
+
+            <p> Keeping these calculations in mind will come in handy later.</p>
+
+            <p>Now: equivalently, we can think of a function $ V $ being applied to $ X $
+              to get $ A $:</p>
+
+              $$ A = V(X) $$
+
+            <p>This is just an equivalent way of describing the same phenomenon
+              occuring above.</p>
+
+            <p>Since this <em>can</em> be described with a matrix multiplication, coding
+              this is actually quite simple:</p>
+
+              <pre class="brush: python">
+                V = np.random.randn(3, 4)
+                A = np.dot(X,V)
+              </pre>
+
+              <p>
+                Now, as we do in neural nets, to make this nonlinear, we will now apply a sigmoid
+                function to $ A $, getting what we'll call $ B $. We can think of this in
+              several different ways. We can write in shorthand:
+            </p>
+
+            $$ B = \sigma(A) $$
+
+            <p>or we can write out:</p>
+
+            $$ b_1 = \sigma(a_1) $$
+            $$ b_2 = \sigma(a_2) $$
+            $$ b_3 = \sigma(a_3) $$
+            $$ b_4 = \sigma(a_4) $$
+
+            <p>Or we can think in terms of nested functions:</p>
+
+            $$ B = \sigma(V(X)) $$
+
+            <p>Again, these are all equivalent ways of describing the same thing, and are all useful
+              in their own ways. In code, of course, we would write:</p>
+
+              <pre class="brush: python">
+                B = sigmoid(A)
+              </pre>
+
+              <p>Now, let's observe that our journey has led us to familiar territory! We
+                now have four "features", $ b_1, ... , b_4 $, that we are using to predict
+                one output $ y_1 $. This is the identical scenario to the neural net we
+              constructed before. We'll move quickly through this next section, getting quickly
+            to computing our prediction $P$.</p>
+
+              <p>Our second set of parameters will be called $ W $, and will be a 4 x 1 matrix.
+                We will multiply it by $ B $ in the appropriate way, and getting $ C $, and then
+                apply a sigmoid function to it to get our final prediction $ P $. We
+              can equivalently write this as:</p>
+
+            $$ C = W(\sigma(V(X)))) $$
+
+            $$ C = W(B)) $$
+
+            $$ c_1 = w_1 * b_1 + w_2 * b_2 + w_3 * b_3 + w_4 * b_4 $$
+
+            <pre class="brush: python">
+              C = np.dot(B,W)
+            </pre>
+
+            <p>
+              Finally, to get our prediction $ P $:
+            </p>
+
+            $$ P = \sigma(C) $$
+
+            $$ P = \sigma(W(\sigma(V(X))))) $$
+
+            <pre class="brush: python">
+              P = sigmoid(C)
+            </pre>
+
+            <p>
+              Now, we'll compute our loss:
+            </p>
+
+            $$ L = \frac{1}{2}(y - P)^2 $$
+
+            $$ L = \frac{1}{2}(y - \sigma(W(\sigma(V(X))))))^2 $$
+
+            <p>
+              Now, we'll compute our loss:
+            </p>
+
+            <pre class="brush: python">
+              L = 0.5 * (y - P) ** 2
+            </pre>
+
+            <p>
+              Now, for the complicated part: as in the first example, we want to
+              compute the partial derivative of $ L $ with respect to $ W $ and $ V $,
+              which is really shorthand for the derivative of $ L $ with respect to each
+              of the parameters in $ W $ and $ V $. However, we know how to compute the
+              derivative of $ L $ with respect to the parameters in $ W $, since we did that
+              in our previous example.
+            </p>
+
+            <p>Let's go through the first few steps, each done mathematically and with code:</p>
+
+            <p> Step 1: the partial derivative of $L$ with respect to $P$,
+           </p>
+            $$ \frac{\partial L}{\partial P} = -1.0 * (y - P) $$
+            <pre class="brush: python">
+              dLdP = -1.0 * (y-P)
+            </pre>
+
+            <p> Step 2: the partial derivative of $P$ with respect to $C$,
+           </p>
+            $$ \frac{\partial P}{\partial C} = \sigma(C) * (1 - \sigma(C)) $$
+            <pre class="brush: python">
+              dPdC = sigmoid(C) * (1.0 - sigmoid(C))
+            </pre>
+
+            <p> Step 3: combine these together to get a partial derivative of $L$
+               with respect to $C$,
+           </p>
+            $$ \frac{\partial L}{\partial C} = \frac{\partial L}{\partial P} * \frac{\partial P}{\partial C}
+             \frac{\partial L}{\partial C} =  -1.0 * (y-P) * \sigma(C) * (1 - \sigma(C)) $$
+            <pre class="brush: python">
+              dLdC = dLdP * dPdC
+            </pre>
+
+            <p>Again, and this cannot be overstated often enough: <strong>these kinds of computations
+              work because at their core, neural nets are nested functions, and the derivatives of nested
+              functions like this can be computed using <em>the chain rule</em></strong>.</p>
+
+              <p> Step 4: since $ W $ is used in the computation of $ C $ we can compute the derivative
+                of $ C $ with respect to $ W $. We went through in detail in the previous example how
+                this is simply $ B $:</p>
+              <p>Note: we know that $ W $ is a 4 x 1 matrix, and based on the way we have coded this,
+                $ B $ is a 1 x 4 matrix; just as $ X $, our starting features, were represented as a row,
+                so $ B $, our "intermediate" or "hidden" features will be represented as a row. Thus,
+                  make the dimensions of our computations line up properly, we will write that the
+                  $ \frac{\partial C}{\partial W} = B^T $. This has <em>nothing</em> to do with what
+                  is actually going on: this is only to help the code perform the calculations correctly,
+                  (in addition, this whole setup will generalize well when we move on to more complicated neural
+                  nets down the line).
+                </p>
+
+               $$ \frac{\partial C}{\partial W} = B^T $$
+               <pre class="brush: python">
+                 dLdW = np.dot(dCdW, dLdC)
+               </pre>
+
+               <p>This is how much we need to update $ W $ by!</p>
+
+             <p> Step 5: let's continue the backpropogation: to get eventually to
+             $ \frac{\partial L}{\partial V} $, we'll need to compute,
+             <ul>
+               <li>$ \frac{\partial A}{\partial V} $</li>
+               <li>$ \frac{\partial B}{\partial A} $</li>
+               <li>$ \frac{\partial L}{\partial B} $</li>
+             </ul>
+
+             To start, note that
+             $$ \frac{\partial L}{\partial B} = \frac{\partial L}{\partial C} * \frac{\partial C}{\partial B} $$
+
+             We already know  $ \frac{\partial L}{\partial C} $, and $ \frac{\partial C}{\partial B} $
+             is just $ W $, for the same reason that $ \frac{\partial C}{\partial W} = B^T $.
+             So, we can compute the first of these:
+           </p>
+
+           $$ \frac{\partial C}{\partial B} = W $$
+           $$ \frac{\partial L}{\partial B} = \frac{\partial C}{\partial B} * \frac{\partial L}{\partial C} $$
+           <pre class="brush: python">
+             dLdB = np.dot(dCdB, dLdC)
+           </pre>
+
+           <p> Note that since $W$ is a 4 x 1 matrix, and $ \frac{\partial L}{\partial C} $ is just a number,
+             $ \frac{\partial L}{\partial B} $ is itself a 4 x 1 matrix.
+
+           <p> Step 6: a relatively easy one: since $ B = \sigma(A) $, and
+             $ \sigma^{'}(x) = \sigma(x) * (1-\sigma(x)) $</p>
+
+         $$ \frac{\partial B}{\partial A} = \sigma(A) * (1-\sigma(A)) $$
+         $$ \frac{\partial L}{\partial A} = \frac{\partial B}{\partial A} * \frac{\partial L}{\partial B} $$
+         <pre class="brush: python">
+            dBdA = sigmoid(A) * (1 - sigmoid(A))
+            dLdA = dLdB * dBdA
+         </pre>
+
+         <p> Step 7: Now for the last tricky step: we need to compute
+         $ \frac{\partial A}{\partial V} $. Unpacking this, step by step,
+         first realize that we're really computing:
+       </p>
+
+      $$ \begin{bmatrix}\frac{\partial L}{\partial v_{11}} & \frac{\partial L}{\partial v_{12}} & \frac{\partial L}{\partial v_{13}} & \frac{\partial L}{\partial v_{14}} \\
+                      \frac{\partial L}{\partial v_{21}} & \frac{\partial L}{\partial v_{22}} & \frac{\partial L}{\partial v_{23}} & \frac{\partial L}{\partial v_{24}} \\
+                      \frac{\partial L}{\partial v_{31}} & \frac{\partial L}{\partial v_{32}} & \frac{\partial L}{\partial v_{33}} & \frac{\partial L}{\partial v_{34}} \\
+                        \end{bmatrix} $$
+
+        <p>But, recall that: </p>
+
+       $$ x_1 * v_{11} + x_2 * v_{21} + x_3 * v_{31} = a_1 $$
+       $$ x_1 * v_{12} + x_2 * v_{22} + x_3 * v_{32} = a_2 $$
+       $$ x_1 * v_{13} + x_2 * v_{23} + x_3 * v_{33} = a_3 $$
+       $$ x_1 * v_{14} + x_2 * v_{24} + x_3 * v_{34} = a_4 $$
+
+       <p> From this, we can see that, focusing only on $a_1$, for example: <p>
+
+        $$ \frac{\partial a_1}{\partial v_{11}} = x_1 $$
+        $$ \frac{\partial a_1}{\partial v_{21}} = x_2 $$
+        $$ \frac{\partial a_1}{\partial v_{31}} = x_3 $$
+
+        <p>whereas for $a_2$ and $a_3$,</p>
+
+        $$ \frac{\partial a_2}{\partial v_{11}} = 0 $$
+        $$ \frac{\partial a_3}{\partial v_{11}} = 0 $$
+
+        <p>So, if we write:</p>
+
+        $$ A = \begin{bmatrix}a_1 \\ a_2 \\ a_3 \\ a_4 \end{bmatrix} $$
+
+        <p>Then it makes sense to say:</p>
+
+        $$ \frac{\partial A}{\partial V} = \begin{bmatrix}
+           \frac{\partial a_1}{\partial V} \\
+           \frac{\partial a_2}{\partial V} \\
+           \frac{\partial a_3}{\partial V} \\
+           \frac{\partial a_4}{\partial V} \end{bmatrix} $$
+
+        <p>and breaking out each of these:</p>
+
+        $$ \frac{\partial A}{\partial V} = \begin{bmatrix}
+           \begin{bmatrix} x_1 & x_2 & x_3 \end{bmatrix} \\
+           \begin{bmatrix} x_1 & x_2 & x_3 \end{bmatrix} \\
+           \begin{bmatrix} x_1 & x_2 & x_3 \end{bmatrix} \\
+           \begin{bmatrix} x_1 & x_2 & x_3 \end{bmatrix}\end{bmatrix} $$
+
+        <p>Thus, we can simply write:</p>
+
+        $$ \frac{\partial A}{\partial V} = X^T $$
+
+        <pre class="brush: python">
+           dAdV = X.T
+        </pre>
+
+        <p>Now, finally we can compute $\frac{\partial L}{\partial V}$ as </p>
+          $$ \frac{\partial L}{\partial V} = \frac{\partial A}{\partial V} * \frac{\partial L}{\partial A} $$
+
+      <p>
+        or
+      </p>
+
+      $$ \frac{\partial L}{\partial V} = \begin{bmatrix}x_1 \\ x_2 \\ x_3 \end{bmatrix} * \begin{bmatrix} \frac{\partial L}{\partial a_1} &
+                                                                        \frac{\partial L}{\partial a_2} &
+                                                                        \frac{\partial L}{\partial a_3} &
+                                                                        \frac{\partial L}{\partial a_4}
+                                                                        \end{bmatrix} $$
+
+    <p>
+      We can easily write this in code as:
+    </p>
+       <pre class="brush: python">
+         dLdV = np.dot(dAdV, dLdA)
+       </pre>
+
+       <p>
+         And, we are done! We can now subtract dLdV and dLdW from their respective weight
+         vectors to reduce the loss on the next pass through the network. In code:
+       </p>
+
+       <pre class="brush: python">
+         W -= dLdW
+         V -= dLdV
+       </pre>
+
+        <p>Putting this all together:</p>
+
+        <pre class="brush: python">
+          X = np.array([ [0,0,1] ])
+          y = np.array([ [1] ]).T
+          V = np.random.randn(3, 4)
+          W = np.random.randn(4, 1)
+          for i in range(10000):
+              A = np.dot(X,V)
+              B = nonlin(A)
+              C = np.dot(B,W)
+              P = nonlin(C)
+              L = 0.5 * (y - P) ** 2
+              dLdP = -1.0 * (y-P)
+              dPdC = sigmoid(C) * (1-sigmoid(C))
+              dLdC = dLdP * dPdC
+              dCdW = B.T
+              dLdW = np.dot(dCdW, dLdC)
+              dCdB = W.T
+              dLdB = dLdC * dCdB
+              dBdA = sigmoid(A) * (1-sigmoid(A))
+              dLdA = dLdB * dBdA
+              dAdV = X.T
+              dLdV = np.dot(dAdV, dLdA)
+              W -= dLdW
+              V -= dLdV
+          </pre>
+
+            <p> Congratulations: you have coded, in a meticulous, step-by-step fashion, a neural net
+              with a hidden layer. Next weekm we will show how both this neural net and the one
+              we coded last week can:</p>
+              <ol>
+              <li>Work with multiple training examples, rather than just 1 example as these
+                toy examples do.</li>
+              <li>Incorporate different loss functions.</li>
+              <li>Most excitingly, we'll explore how these networks can be said to be "learing".</li>
+              </ol>
+            <p>Finally, we'll go into what functions this more complicated network can learn that
+              the first one cannot, and provide some intuition as to why that is.</p>
+            <p>Already, with this foundation of understanding we've built up, we're well on our way
+              to building quite complicated neural nets - which are really primitive forms of AI,
+              - from scratch, <em>and</em> understanding how they work. If you've made
+              it this far, well done.</p>
+</body>
+
+</html>
