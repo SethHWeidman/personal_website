@@ -77,7 +77,7 @@ def try_read_int(cell, default_value='123456789'):
         return default_value
 
 
-@app.route('/sudoku/', methods=['GET', 'POST'])
+@app.route('/app/sudoku/', methods=['GET', 'POST'])
 def hello_world():
     '''Sets up the Sudoku with an easy-to-solve puzzle.
     Uses Javascript to render it.'''
@@ -93,7 +93,7 @@ def hello_world():
     return render_template('index.html', input_sudoku=easy_dict)
 
 
-@app.route('/sudoku/sudoku_action/', methods=['GET', 'POST'])
+@app.route('/app/sudoku/sudoku_action/', methods=['GET', 'POST'])
 def sudoku_action():
     '''
     This function:
@@ -112,7 +112,7 @@ def sudoku_action():
         return render_template('sudoku_action.html', input_sudoku=cell_data)
 
 
-@app.route('/sudoku/eliminate_one/', methods=['GET', 'POST'])
+@app.route('/app/sudoku/eliminate_one/', methods=['GET', 'POST'])
 def update_one():
     '''
     Update just one value in the cell.
